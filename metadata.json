@@ -1,6 +1,6 @@
 {
-  "name": "Minimalist Red Link Showcase",
-  "description": "A minimalist, shiny cherry-red themed Link Showcase website featuring an interactive Model dashboard, social link integrations, ambient synthesized sound effects, fluid particles, and an AI chat companion.",
+  "name": "JoshaFPS Social Links",
+  "description": "Here you can find the social links of JoshaFPS",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

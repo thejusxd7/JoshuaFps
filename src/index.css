@@ -21,8 +21,23 @@
 /* Sleek Interface Theme Styles */
 
 .shiny-red-bg {
-  background-color: #0d0101;
-  background-image: radial-gradient(circle at center, #3d0000 0%, #0d0101 100%);
+  position: relative;
+  background-color: #0c0203;
+  overflow: hidden;
+}
+
+.shiny-red-bg::before {
+  content: "";
+  position: absolute;
+  inset: -40px; /* Extra padding to prevent blur edges from bleeding */
+  background-image: 
+    linear-gradient(rgba(12, 2, 3, 0.72), rgba(12, 2, 3, 0.85)),
+    url('https://i.imgur.com/hZqI9lA.jpeg');
+  background-size: cover;
+  background-position: center;
+  filter: blur(24px) saturate(1.2);
+  z-index: -20;
+  pointer-events: none;
 }
 
 .glass-card {
