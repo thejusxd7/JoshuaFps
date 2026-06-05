@@ -1,0 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Custom Red Animations and Shiny Styles */
+
+.bg-red-650 {
+  background-color: #dc2626; /* Brilliant crimson red */
+}
+.hover\:bg-red-550:hover {
+  background-color: #ef4444;
+}
+.text-emerald-450 {
+  color: #10b981;
+}
+
+/* Sleek Interface Theme Styles */
+
+.shiny-red-bg {
+  background-color: #0d0101;
+  background-image: radial-gradient(circle at center, #3d0000 0%, #0d0101 100%);
+}
+
+.glass-card {
+  background: rgba(255, 0, 0, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 0, 0, 0.2);
+}
+
+.link-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background: linear-gradient(135deg, #ff1e1e 0%, #b30000 100%);
+  box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+.link-button:hover {
+  transform: scale(1.03) translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  filter: brightness(1.1);
+}
+
+.link-button::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+  transform: rotate(45deg);
+  transition: 0.5s;
+}
+
+.link-button:hover::after {
+  left: 100%;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+/* Smooth float animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes float-subtle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-subtle {
+  animation: float-subtle 8s ease-in-out infinite;
+}
+
+/* Shiny Liquid Sheen hover reflection effect */
+.glass-reflection {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-reflection::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 30%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.13) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(25deg);
+  transition: all 0.75s cubic-bezier(0.19, 1, 0.22, 1);
+  pointer-events: none;
+}
+
+.glass-reflection:hover::after {
+  left: 120%;
+}
+
+/* Pulse Glow Effects */
+@keyframes neon-pulse {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(220, 38, 38, 0.35), inset 0 0 10px rgba(220, 38, 38, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(220, 38, 38, 0.65), inset 0 0 15px rgba(220, 38, 38, 0.3);
+  }
+}
+
+.glow-active-crimson {
+  animation: neon-pulse 3s infinite ease-in-out;
+}
+
+/* Smooth Liquid Ambient background effects */
+@keyframes fluid-glow {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(45px, -35px) scale(1.15);
+  }
+  66% {
+    transform: translate(-30px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-liquid-blob {
+  animation: fluid-glow 14s infinite ease-in-out;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Scrollbar aesthetic pairing */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(10, 2, 3, 0.95);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(185, 28, 28, 0.3);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(185, 28, 28, 0.6);
+}
