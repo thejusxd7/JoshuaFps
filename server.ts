@@ -3,6 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import { Readable } from "stream";
 
 dotenv.config();
 
@@ -114,7 +115,7 @@ Guidelines for your persona:
   app.get("/api/background-video", async (req, res) => {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000); // 4s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout
 
       const response = await fetch("https://jumpshare.com/embed/yZnFsZknYePO2IJw4cRh", {
         signal: controller.signal,
@@ -129,29 +130,30 @@ Guidelines for your persona:
       }
       const html = await response.text();
 
-      // Find the direct video src in the player markup or json preview structure
+      // Find direct video source CDN URL
+      let cdnUrl = "https://cdn.jumpshare.com/preview/WR8DI70LGweWY4NPhtwuxDd-khmF6nPki11uyTftpV0bD2wDg6mlYuDFzmI42NEI-ipT_Xq2ET8qSoxLBbRO7uCD54QYc_f8DJccyjNSNnFgVj9KbFj63B0IciTexJOmJj74o2hN7YSlWpLzy5XokG6yjbN-I2pg_cnoHs_AmgI.mp4";
       const match = html.match(/<video[^>]*\bsrc\s*=\s*["']([^"']+)["']/i);
       if (match && match[1]) {
-        return res.redirect(match[1]);
+        cdnUrl = match[1];
+      } else {
+        const cdnMatch = html.match(/https:\/\/cdn\.jumpshare\.com\/preview\/[^\s\"']+\.mp4\b/i);
+        if (cdnMatch && cdnMatch[0]) {
+          cdnUrl = cdnMatch[0];
+        } else {
+          const streamMatch = html.match(/https:\/\/cdn\.jumpshare\.com\/preview\/[^\s\"]+/i);
+          if (streamMatch && streamMatch[0]) {
+            cdnUrl = streamMatch[0];
+          }
+        }
       }
 
-      // Fallback 1: match CDN url ending in .mp4 on that page
-      const cdnMatch = html.match(/https:\/\/cdn\.jumpshare\.com\/preview\/[^\s\"']+\.mp4\b/i);
-      if (cdnMatch && cdnMatch[0]) {
-        return res.redirect(cdnMatch[0]);
-      }
+      // Direct HTTP 302 Redirect to direct CDN URL
+      res.redirect(cdnUrl);
 
-      // Fallback 2: grab general preview stream URLs
-      const streamMatch = html.match(/https:\/\/cdn\.jumpshare\.com\/preview\/[^\s\"']+/i);
-      if (streamMatch && streamMatch[0]) {
-        return res.redirect(streamMatch[0]);
-      }
-
-      // Safe static fallback
-      return res.redirect("https://cdn.jumpshare.com/preview/WR8DI70LGweWY4NPhtwuxDd-khmF6nPki11uyTftpV0bD2wDg6mlYuDFzmI42NEI-ipT_Xq2ET8qSoxLBbRO7uCD54QYc_f8DJccyjNSNnFgVj9KbFj63B0IciTexJOmJj74o2hN7YSlWpLzy5XokG6yjbN-I2pg_cnoHs_AmgI.mp4");
     } catch (e) {
       console.error("Failed to dynamically resolve jumpshare background video:", e);
-      return res.redirect("https://cdn.jumpshare.com/preview/WR8DI70LGweWY4NPhtwuxDd-khmF6nPki11uyTftpV0bD2wDg6mlYuDFzmI42NEI-ipT_Xq2ET8qSoxLBbRO7uCD54QYc_f8DJccyjNSNnFgVj9KbFj63B0IciTexJOmJj74o2hN7YSlWpLzy5XokG6yjbN-I2pg_cnoHs_AmgI.mp4");
+      // Fallback standard redirect
+      res.redirect("https://cdn.jumpshare.com/preview/WR8DI70LGweWY4NPhtwuxDd-khmF6nPki11uyTftpV0bD2wDg6mlYuDFzmI42NEI-ipT_Xq2ET8qSoxLBbRO7uCD54QYc_f8DJccyjNSNnFgVj9KbFj63B0IciTexJOmJj74o2hN7YSlWpLzy5XokG6yjbN-I2pg_cnoHs_AmgI.mp4");
     }
   });
 

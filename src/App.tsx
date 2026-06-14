@@ -40,35 +40,76 @@ export default function App() {
   const [profile, setProfile] = useState<ModelProfile>(DEFAULT_PROFILE);
   const [copied, setCopied] = useState(false);
   const [upiCopied, setUpiCopied] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false); // Default sound on
   const [videoError, setVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
-    // Play video smoothly on start
-    const playVideo = () => {
-      if (videoRef.current) {
-        videoRef.current.play().catch((err) => {
-          console.log("Playback was delayed awaiting passive gesture:", err);
-        });
+    let unmounted = false;
+    let fallbackToMutedNeeded = false;
+
+    // Play video safely handling browser autoplay restrictions
+    const playVideo = async () => {
+      if (!videoRef.current || unmounted) return;
+      
+      try {
+        // Try unmuted play first since user wants default sound on
+        videoRef.current.muted = isMuted;
+        await videoRef.current.play();
+        console.log("Autoplay succeeded unmuted!");
+      } catch (err) {
+        console.warn("Unmuted autoplay rejected by browser. Attempting muted fallback...", err);
+        if (videoRef.current && !unmounted) {
+          fallbackToMutedNeeded = true;
+          videoRef.current.muted = true;
+          setIsMuted(true);
+          try {
+            await videoRef.current.play();
+            console.log("Muted autoplay succeeded!");
+          } catch (e) {
+            console.error("Muted autoplay also failed:", e);
+          }
+        }
       }
     };
 
-    playVideo();
+    // Delay start slightly to allow the DOM to settle and optimize buffering
+    const timeoutId = setTimeout(playVideo, 100);
 
-    // Trigger video play upon any page layout user interactions to solve autoplay blocks
+    // Global interaction gesture listener to automatically override and unmute when user interacts with page
     const handleGesture = () => {
-      playVideo();
+      if (unmounted) return;
+      
+      if (fallbackToMutedNeeded) {
+        fallbackToMutedNeeded = false;
+        setIsMuted(false);
+        if (videoRef.current) {
+          videoRef.current.muted = false;
+          videoRef.current.play().catch(err => {
+            console.warn("Failed to play unmuted on gesture:", err);
+          });
+        }
+      } else {
+        if (videoRef.current) {
+          videoRef.current.play().catch(() => {});
+        }
+      }
+      
       window.removeEventListener("click", handleGesture);
       window.removeEventListener("touchstart", handleGesture);
+      window.removeEventListener("keydown", handleGesture);
     };
 
     window.addEventListener("click", handleGesture, { passive: true });
     window.addEventListener("touchstart", handleGesture, { passive: true });
+    window.addEventListener("keydown", handleGesture, { passive: true });
 
     return () => {
+      unmounted = true;
+      clearTimeout(timeoutId);
       window.removeEventListener("click", handleGesture);
       window.removeEventListener("touchstart", handleGesture);
+      window.removeEventListener("keydown", handleGesture);
     };
   }, []);
 
@@ -77,8 +118,7 @@ export default function App() {
       videoRef.current.muted = isMuted;
       if (!isMuted) {
         videoRef.current.play().catch((err) => {
-          console.warn("Unmuted playback trigger failed:", err);
-          setIsMuted(true);
+          console.warn("Manual unmuted play trigger failed:", err);
         });
       }
     }
@@ -232,6 +272,11 @@ export default function App() {
           loop
           muted={isMuted}
           playsInline
+          onCanPlay={(e) => {
+            e.currentTarget.play().catch((err) => {
+              console.log("Auto-play trigger on availability failed:", err);
+            });
+          }}
           onError={() => {
             console.warn("Direct background video stream failed. Activating Vercel fallback...");
             setVideoError(true);
@@ -242,7 +287,7 @@ export default function App() {
       ) : (
         <iframe
           id="js_video_iframe"
-          src="https://jumpshare.com/embed/yZnFsZknYePO2IJw4cRh?hideTitle=true&disableDownload=true&autoplay=true"
+          src="https://jumpshare.com/embed/yZnFsZknYePO2IJw4cRh?hideTitle=true&disableDownload=true&autoplay=true&muted=1&mute=1"
           title="DMC Background Video Fallback"
           className="iframe-video-background"
           style={{ zIndex: -30 }}
