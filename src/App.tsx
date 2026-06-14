@@ -41,6 +41,7 @@ export default function App() {
   const [copied, setCopied] = useState(false);
   const [upiCopied, setUpiCopied] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [videoError, setVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
@@ -223,16 +224,32 @@ export default function App() {
       <div className="absolute inset-0 bg-[#050001] pointer-events-none" style={{ zIndex: -50 }} />
 
       {/* Absolute high fidelity full screen background video stream */}
-      <video
-        ref={videoRef}
-        src="/api/background-video"
-        autoPlay
-        loop
-        muted={isMuted}
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-        style={{ zIndex: -30 }}
-      />
+      {!videoError ? (
+        <video
+          ref={videoRef}
+          src="/api/background-video"
+          autoPlay
+          loop
+          muted={isMuted}
+          playsInline
+          onError={() => {
+            console.warn("Direct background video stream failed. Activating Vercel fallback...");
+            setVideoError(true);
+          }}
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          style={{ zIndex: -30 }}
+        />
+      ) : (
+        <iframe
+          id="js_video_iframe"
+          src="https://jumpshare.com/embed/yZnFsZknYePO2IJw4cRh?hideTitle=true&disableDownload=true&autoplay=true"
+          title="DMC Background Video Fallback"
+          className="iframe-video-background"
+          style={{ zIndex: -30 }}
+          allow="autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+        />
+      )}
 
       {/* Ambient glass-red tint overlay to preserve contrast */}
       <div 

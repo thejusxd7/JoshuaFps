@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/api/background-video", "destination": "/api/background-video" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
