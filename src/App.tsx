@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Instagram, 
   Phone, 
   Gamepad2, 
   Youtube, 
+  Tv,
   HeartHandshake, 
   Flame, 
   Share2, 
@@ -31,6 +32,7 @@ const DEFAULT_PROFILE: ModelProfile = {
   discord: "https://discord.gg/NdKuWNQEYq",
   whatsapp: "https://chat.whatsapp.com/LHD8fxZ0hWHHNczacsyhuk",
   youtube: "https://youtube.com/@mrzjoshua",
+  kick: "https://kick.com/joshuafps",
   donation: "www.joshuasibu123@okaxis", // UPI ID
 };
 
@@ -38,6 +40,48 @@ export default function App() {
   const [profile, setProfile] = useState<ModelProfile>(DEFAULT_PROFILE);
   const [copied, setCopied] = useState(false);
   const [upiCopied, setUpiCopied] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    // Play video smoothly on start
+    const playVideo = () => {
+      if (videoRef.current) {
+        videoRef.current.play().catch((err) => {
+          console.log("Playback was delayed awaiting passive gesture:", err);
+        });
+      }
+    };
+
+    playVideo();
+
+    // Trigger video play upon any page layout user interactions to solve autoplay blocks
+    const handleGesture = () => {
+      playVideo();
+      window.removeEventListener("click", handleGesture);
+      window.removeEventListener("touchstart", handleGesture);
+    };
+
+    window.addEventListener("click", handleGesture, { passive: true });
+    window.addEventListener("touchstart", handleGesture, { passive: true });
+
+    return () => {
+      window.removeEventListener("click", handleGesture);
+      window.removeEventListener("touchstart", handleGesture);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+      if (!isMuted) {
+        videoRef.current.play().catch((err) => {
+          console.warn("Unmuted playback trigger failed:", err);
+          setIsMuted(true);
+        });
+      }
+    }
+  }, [isMuted]);
 
   const copyToClipboard = async (text: string): Promise<boolean> => {
     try {
@@ -137,6 +181,14 @@ export default function App() {
       colorClass: "from-red-650 to-red-500 hover:shadow-red-600/35",
       subtitle: "@mrzjoshua",
     },
+    {
+      id: "kick",
+      label: "Kick Channel",
+      icon: "Tv",
+      url: profile.kick || "https://kick.com/joshuafps",
+      colorClass: "from-emerald-500 to-lime-400 hover:shadow-emerald-600/35",
+      subtitle: "@joshuafps",
+    },
   ];
 
   // Render icons dynamically from Lucide library safely
@@ -150,6 +202,8 @@ export default function App() {
         return <Phone className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />;
       case "Youtube":
         return <Youtube className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />;
+      case "Tv":
+        return <Tv className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />;
       default:
         return <Flame className="w-5 h-5" />;
     }
@@ -165,12 +219,34 @@ export default function App() {
   return (
     <div className="relative w-full min-h-screen text-white flex flex-col items-center justify-center p-4 md:p-8 select-none overflow-hidden font-sans shiny-red-bg">
       
+      {/* Matte black background under-layer to prevent color flashes */}
+      <div className="absolute inset-0 bg-[#050001] pointer-events-none" style={{ zIndex: -50 }} />
+
+      {/* Absolute high fidelity full screen background video stream */}
+      <video
+        ref={videoRef}
+        src="/api/background-video"
+        autoPlay
+        loop
+        muted={isMuted}
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        style={{ zIndex: -30 }}
+      />
+
+      {/* Ambient glass-red tint overlay to preserve contrast */}
+      <div 
+        className="absolute inset-0 bg-gradient-to-b from-black/82 via-red-950/20 to-black/92 pointer-events-none" 
+        style={{ zIndex: -25 }}
+      />
+
       {/* Dynamic Crimson Particles backdrop */}
       <RedParticles />
 
-      {/* Extreme smooth visual lighting blobs in background */}
-      <div className="absolute top-20 left-40 w-64 h-64 bg-red-900/15 rounded-full blur-[100px] pointer-events-none -z-10" />
-      <div className="absolute bottom-20 right-40 w-96 h-96 bg-red-600/10 rounded-full blur-[120px] pointer-events-none -z-10" />
+      {/* Extreme smooth visual lighting blobs in background (Red Liquid Glass Theme) */}
+      <div className="absolute top-10 left-10 w-80 h-80 bg-red-600/15 rounded-full filter blur-[90px] animate-liquid-blob pointer-events-none -z-10" />
+      <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-rose-950/20 rounded-full filter blur-[120px] animate-liquid-blob animation-delay-2000 pointer-events-none -z-10" />
+      <div className="absolute bottom-10 right-10 w-80 h-80 bg-red-700/15 rounded-full filter blur-[100px] animate-liquid-blob animation-delay-4000 pointer-events-none -z-10" />
 
 
 
@@ -185,6 +261,23 @@ export default function App() {
             transition={{ duration: 0.8, cubicBezier: [0.175, 0.885, 0.32, 1.275] }}
             className={`w-full rounded-[40px] p-6 md:p-10 ${themeStyle.card} relative flex flex-col items-center`}
           >
+
+            {/* Dynamic Sound Unmute / Mute control trigger */}
+            <button
+              onClick={() => {
+                setIsMuted(!isMuted);
+                playClickSound(profile.soundEnabled);
+              }}
+              className={`absolute top-6 left-6 p-2 rounded-xl border backdrop-blur-md transition-all duration-300 z-30 ${
+                !isMuted 
+                  ? "bg-red-500/25 border-red-500/50 text-red-100 shadow-[0_0_15px_rgba(239,68,68,0.45)] hover:bg-red-500/35 scale-105 animate-pulse"
+                  : "bg-neutral-900/60 border-neutral-800 text-neutral-400 hover:border-red-900/40 hover:text-red-400"
+              }`}
+              title={isMuted ? "Unmute Background Music" : "Mute Background Music"}
+              id="bg-music-toggle-btn"
+            >
+              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-red-200" />}
+            </button>
 
             {/* Quick Share Link Trigger */}
             <button

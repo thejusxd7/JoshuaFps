@@ -83,14 +83,6 @@ export default function RedParticles() {
       if (!ctx || !canvas) return;
       ctx.clearRect(0, 0, width, height);
 
-      // Simple, beautiful, custom glossy dark/red gradient clearing base
-      const grad = ctx.createLinearGradient(0, 0, 0, height);
-      grad.addColorStop(0, "rgba(8, 2, 2, 0.95)");
-      grad.addColorStop(0.5, "rgba(22, 4, 6, 0.98)");
-      grad.addColorStop(1, "rgba(6, 1, 1, 0.97)");
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, width, height);
-
       // Update and draw particles
       particles.forEach((p, idx) => {
         p.y += p.speedY;
@@ -110,20 +102,18 @@ export default function RedParticles() {
         // Pulse the size
         const pulsingSize = p.size * (1 + Math.sin(p.pulseTimer) * 0.25);
 
-        // Render particle with crimson glow
+        // Highly optimized glow simulation via layered circles (completely lag-free)
+        if (pulsingSize > 1.8) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, pulsingSize * 2.2, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(239, 68, 68, ${p.alpha * 0.25})`;
+          ctx.fill();
+        }
+
         ctx.beginPath();
         ctx.arc(p.x, p.y, pulsingSize, 0, Math.PI * 2);
-        
-        // Shiny red neon styling
-        const particleColor = `rgba(239, 68, 68, ${p.alpha})`; // tailwind red-500
-        ctx.fillStyle = particleColor;
-        
-        // Outer glow on particles
-        ctx.shadowBlur = p.size > 2 ? 8 : 2;
-        ctx.shadowColor = "#ef4444";
-        
+        ctx.fillStyle = `rgba(239, 68, 68, ${p.alpha})`;
         ctx.fill();
-        ctx.shadowBlur = 0; // reset for performance
 
         // Recycle if goes off screen
         if (p.y < -10 || p.x < -10 || p.x > width + 10) {

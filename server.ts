@@ -109,6 +109,52 @@ Guidelines for your persona:
     });
   });
 
+  // Dynamic Background Video Resolver
+  // Fetches Jumpshare embed and redirects client to the fresh, non-expired MP4 CDN link
+  app.get("/api/background-video", async (req, res) => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000); // 4s timeout
+
+      const response = await fetch("https://jumpshare.com/embed/yZnFsZknYePO2IJw4cRh", {
+        signal: controller.signal,
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+      });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`Failed web fetch: ${response.statusText}`);
+      }
+      const html = await response.text();
+
+      // Find the direct video src in the player markup or json preview structure
+      const match = html.match(/<video[^>]*\bsrc\s*=\s*["']([^"']+)["']/i);
+      if (match && match[1]) {
+        return res.redirect(match[1]);
+      }
+
+      // Fallback 1: match CDN url ending in .mp4 on that page
+      const cdnMatch = html.match(/https:\/\/cdn\.jumpshare\.com\/preview\/[^\s\"']+\.mp4\b/i);
+      if (cdnMatch && cdnMatch[0]) {
+        return res.redirect(cdnMatch[0]);
+      }
+
+      // Fallback 2: grab general preview stream URLs
+      const streamMatch = html.match(/https:\/\/cdn\.jumpshare\.com\/preview\/[^\s\"']+/i);
+      if (streamMatch && streamMatch[0]) {
+        return res.redirect(streamMatch[0]);
+      }
+
+      // Safe static fallback
+      return res.redirect("https://cdn.jumpshare.com/preview/WR8DI70LGweWY4NPhtwuxDd-khmF6nPki11uyTftpV0bD2wDg6mlYuDFzmI42NEI-ipT_Xq2ET8qSoxLBbRO7uCD54QYc_f8DJccyjNSNnFgVj9KbFj63B0IciTexJOmJj74o2hN7YSlWpLzy5XokG6yjbN-I2pg_cnoHs_AmgI.mp4");
+    } catch (e) {
+      console.error("Failed to dynamically resolve jumpshare background video:", e);
+      return res.redirect("https://cdn.jumpshare.com/preview/WR8DI70LGweWY4NPhtwuxDd-khmF6nPki11uyTftpV0bD2wDg6mlYuDFzmI42NEI-ipT_Xq2ET8qSoxLBbRO7uCD54QYc_f8DJccyjNSNnFgVj9KbFj63B0IciTexJOmJj74o2hN7YSlWpLzy5XokG6yjbN-I2pg_cnoHs_AmgI.mp4");
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

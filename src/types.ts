@@ -22,6 +22,7 @@ export interface ModelProfile {
   discord: string;
   whatsapp: string;
   youtube: string;
+  kick?: string;
   donation: string;
 }
 
